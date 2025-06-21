@@ -28,7 +28,7 @@ async def generate_task(contentFromUser: contentFromUser) -> list[UploadFile]:
     res = await chain.ainvoke({"content": content_name, "casesNum": 10})
 
     taskfile = res.content.split("________________________________________")
-    task_name = taskfile[0].replace("\n", "")
+    task_name = taskfile[0].replace("\n", "").replace(" ", "")
     taskfile.pop(0)
 
     task_files = []
