@@ -1,0 +1,68 @@
+<!-- python -m http.server 8001 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generate Competitive Programming Tasks</title>
+</head>
+<body>
+  <h1>Generate Competitive Programming Task Module</h1>
+  <form id="taskForm">
+    <label for="contentName">Content Name:</label><br />
+    <input type="text" id="contentName" name="contentName" required style="width:300px; padding:6px; margin-top:6px" /><br /><br />
+    <button type="submit">Generate Tasks</button>
+  </form>
+  <p id="status" style="color:red;"></p>
+
+  <script>
+    document.getElementById('taskForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = '';
+      
+      const contentName = document.getElementById('contentName').value.trim();
+      if (!contentName) {
+        statusEl.textContent = 'Please enter a content name.';
+        return;
+      }
+
+      try {
+        statusEl.style.color = 'black';
+        statusEl.textContent = 'Generating... please wait';
+
+        const response = await fetch('http://127.0.0.1:8000/task-gen', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ content_name: contentName }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.statusText}`);
+        }
+
+        // รับไฟล์ zip จาก backend
+        const blob = await response.blob();
+
+        // สร้างลิงก์ดาวน์โหลดไฟล์ zip
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${contentName}_tasks.zip`;  // ตั้งชื่อไฟล์
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        statusEl.style.color = 'green';
+        statusEl.textContent = 'Download ready!';
+      } catch (error) {
+        statusEl.style.color = 'red';
+        statusEl.textContent = 'Error: ' + error.message;
+      }
+    });
+  </script>
+</body>
+</html>

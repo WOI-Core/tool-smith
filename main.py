@@ -25,7 +25,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
 # Load prompt
 with open("prompt.txt", "r", encoding="utf-8") as f:
-    prompt = f.read()
+    structure = f.read()
 
 # Call from API
 class contentFromUser(BaseModel):
@@ -34,11 +34,11 @@ class contentFromUser(BaseModel):
 async def generate_task(contentFromUser: contentFromUser) -> list[UploadFile]:
     prompt = ChatPromptTemplate.from_messages([
         ("system", "คุณคือคนที่ต้องสร้างโจทย์ competetive programming โดยต้องทำตามโครงสร้างใน human message อย่างเคร่งครัด"),
-        ("human", prompt)#+"รูปแบบต้องเหมือนกับเอกสารนี้ {context}")
+        ("human", structure)#+"รูปแบบต้องเหมือนกับเอกสารนี้ {context}")
     ])
     chain = prompt | llm
     content_name = contentFromUser.content_name.lower().replace(" ", "_")
-    res = await chain.ainvoke({"content": content_name})#, "context": retrievers
+    res = await chain.ainvoke({"content": content_name, "casesNum": 10})#, "context": retrievers
 
     taskfile = res.content.split("________________________________________")
     task_name = taskfile[0].replace("\n", "")
