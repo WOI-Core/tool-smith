@@ -15,17 +15,19 @@ with open("prompt.txt", "r", encoding="utf-8") as f:
     structure = f.read()
 
 # Call from API
-class contentFromUser(BaseModel):
+class requestFromUser(BaseModel):
     content_name: str
+    cases_size: int
 
-async def generate_task(contentFromUser: contentFromUser) -> list[UploadFile]:
+async def generate_task(requestFromUser: requestFromUser) -> list[UploadFile]:
     prompt = ChatPromptTemplate.from_messages([
         ("system", "คุณคือคนที่ต้องสร้างโจทย์ competetive programming โดยต้องทำตามโครงสร้างใน human message อย่างเคร่งครัด"),
         ("human", structure)
     ])
     chain = prompt | llm
-    content_name = contentFromUser.content_name.lower().replace(" ", "_")
-    res = await chain.ainvoke({"content": content_name, "casesNum": 10})
+    content_name = requestFromUser.content_name.lower().replace(" ", "_")
+    cases_size = requestFromUser.cases_size
+    res = await chain.ainvoke({"content": content_name, "casesSize": cases_size})
 
     taskfile = res.content.split("________________________________________")
     task_name = taskfile[0].replace("\n", "").replace(" ", "")

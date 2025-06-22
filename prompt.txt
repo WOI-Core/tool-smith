@@ -7,7 +7,7 @@
     ├── gen/
     │   └── generate_input.py   # ไฟล์ Python สำหรับสร้าง input ของ test case
     ├── input/
-    │   └── input_01.txt        # ตัวอย่างหรือเทสเคส จำนวน {casesNum} เทสเคส
+    │   └── input_01.txt        # ตัวอย่างหรือเทสเคส จำนวน {casesSize} เทสเคส
     ├── output/
     │   └── output_01.txt       # Output ที่คาดหวัง
     ├── (task_name).cpp         # โค้ดเฉลยฉบับ C++
@@ -25,7 +25,7 @@
         - ไฟล์ C++ ที่เป็นเฉลยของโจทย์ข้อนี้
 
     3. README.md
-        - อธิบายโจทย์ (ภาษาไทย)
+        - เนื้อเรื่องโจทย์ (ภาษาไทย)
         - input/output 
         - ตัวอย่างเล็กน้อย
         - ข้อกำหนด (time limit(ms), memory limit(MB))
