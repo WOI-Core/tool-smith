@@ -32,7 +32,7 @@ async def generate_task(contentFromUser: contentFromUser) -> list[UploadFile]:
     taskfile.pop(0)
 
     task_files = []
-    file_name = ["generate_input.py", "README.md", f"{task_name}.cpp"]
+    file_name = ["generate_input.py", "README.md", f"{task_name}.cpp", "config.json"]
 
     for file, name in zip(taskfile, file_name):
         temp_file = SpooledTemporaryFile()
