@@ -29,17 +29,24 @@ async def generate_task(requestFromUser: requestFromUser) -> list[UploadFile]:
     cases_size = requestFromUser.cases_size
     res = await chain.ainvoke({"content": content_name, "casesSize": cases_size})
 
-    taskfile = res.content.split("________________________________________")
-    task_name = taskfile[0].replace("\n", "").replace(" ", "")
-    taskfile.pop(0)
+    task_string = res.content.split("________________________________________")
+    task_name = task_string[0].replace("\n", "").replace(" ", "")
+    task_string.pop(0)
+
+    for i in [0, 2, 3]: task_string[i] = backtickFilter(task_string[i])
 
     task_files = []
     file_name = ["generate_input.py", "README.md", f"{task_name}.cpp", "config.json"]
 
-    for file, name in zip(taskfile, file_name):
+    for file, name in zip(task_string, file_name):
         temp_file = SpooledTemporaryFile()
         temp_file.write(file.encode("utf-8"))
         temp_file.seek(0)
         task_files.append(UploadFile(filename=name, file=temp_file))
 
     return task_files
+
+def backtickFilter(text):
+    filtered_lines = [line for line in text.splitlines() if "```" not in line]
+    result = "\n".join(filtered_lines)
+    return result
