@@ -18,6 +18,7 @@ with open("prompt.txt", "r", encoding="utf-8") as f:
 class requestFromUser(BaseModel):
     content_name: str
     cases_size: int
+    detail: str
 
 async def generate_task(requestFromUser: requestFromUser) -> list[UploadFile]:
     prompt = ChatPromptTemplate.from_messages([
@@ -27,7 +28,8 @@ async def generate_task(requestFromUser: requestFromUser) -> list[UploadFile]:
     chain = prompt | llm
     content_name = requestFromUser.content_name.lower().replace(" ", "_")
     cases_size = requestFromUser.cases_size
-    res = await chain.ainvoke({"content": content_name, "casesSize": cases_size})
+    detail = requestFromUser.detail
+    res = await chain.ainvoke({"content": content_name, "casesSize": cases_size, "detail": detail})
 
     task_string = res.content.split("________________________________________")
     task_name = task_string[0].replace("\n", "").replace(" ", "")

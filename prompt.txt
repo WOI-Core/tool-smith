@@ -26,7 +26,9 @@
 
     3. README.md
         - เนื้อเรื่องโจทย์ แฟนตาซีนิดๆ (ภาษาไทย)
-        - input/output 
+        - {detail}
+        - พยายามไม่บอก algorithm ที่ต้องใช้ แต่บีบให้ใช้ด้วย time limit และ memory limit
+        - input/output
         - ตัวอย่างเล็กน้อย
         - ข้อกำหนด (time limit(ms), memory limit(MB))
 
