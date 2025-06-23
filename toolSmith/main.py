@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from tempfile import SpooledTemporaryFile
 from dotenv import load_dotenv
 import asyncio
+import os
 
 # init
 load_dotenv()
@@ -12,7 +13,8 @@ load_dotenv()
 llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash")
 
 # Load prompt
-with open("prompt.txt", "r", encoding="utf-8") as f:
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(BASE_DIR, "prompt.txt"), "r", encoding="utf-8") as f:
     structure = f.read()
 
 # Call from API
@@ -46,9 +48,10 @@ async def generate_task(request: requestFromUser) -> list[UploadFile]:
         task_string[i] = backtickFilter(task_string[i])
 
     testcases = await asyncio.to_thread(testcases_generate, task_string[0])
+    task_string.pop(0)
 
     task_files = []
-    file_name = ["generate_input.py", "README.md", f"{task_name}.cpp", "config.json"]
+    file_name = ["README.md", f"{task_name}.cpp", "config.json"]
 
     for file, name in zip(task_string, file_name):
         upload = await asyncio.to_thread(create_upload_file, name, file)
