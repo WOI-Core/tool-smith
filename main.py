@@ -1,9 +1,10 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-from tempfile import SpooledTemporaryFile
 from fastapi import UploadFile
 from pydantic import BaseModel
+from tempfile import SpooledTemporaryFile
 from dotenv import load_dotenv
+import asyncio
 
 # init
 load_dotenv()
@@ -20,52 +21,54 @@ class requestFromUser(BaseModel):
     cases_size: int
     detail: str
 
-async def generate_task(requestFromUser: requestFromUser) -> list[UploadFile]:
+async def generate_task(request: requestFromUser) -> list[UploadFile]:
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "คุณคือคนที่ต้องสร้างโจทย์ competetive programming โดยต้องทำตามโครงสร้างใน human message อย่างเคร่งครัด"),
+        ("system", "คุณคือคนที่ต้องสร้างโจทย์ competitive programming โดยต้องทำตามโครงสร้างใน human message อย่างเคร่งครัด"),
         ("human", structure)
     ])
     chain = prompt | llm
-    content_name = requestFromUser.content_name.lower().replace(" ", "_")
-    cases_size = requestFromUser.cases_size
-    detail = requestFromUser.detail
-    res = await chain.ainvoke({"content": content_name, "casesSize": cases_size, "detail": detail})
+
+    content_name = request.content_name.lower().replace(" ", "_")
+    cases_size = request.cases_size
+    detail = request.detail
+
+    res = await chain.ainvoke({
+        "content": content_name,
+        "casesSize": cases_size,
+        "detail": detail
+    })
 
     task_string = res.content.split("________________________________________")
     task_name = task_string[0].replace("\n", "").replace(" ", "")
     task_string.pop(0)
 
-    for i in [0, 2, 3]: task_string[i] = backtickFilter(task_string[i])
+    for i in [0, 2, 3]:
+        task_string[i] = backtickFilter(task_string[i])
 
-    print(task_string[0])
-    testcases = testcases_generate(task_string[0])
+    testcases = await asyncio.to_thread(testcases_generate, task_string[0])
 
     task_files = []
     file_name = ["generate_input.py", "README.md", f"{task_name}.cpp", "config.json"]
 
     for file, name in zip(task_string, file_name):
-        temp_file = SpooledTemporaryFile()
-        temp_file.write(file.encode("utf-8"))
-        temp_file.seek(0)
-        task_files.append(UploadFile(filename=name, file=temp_file))
+        upload = await asyncio.to_thread(create_upload_file, name, file)
+        task_files.append(upload)
 
-    input_files = []
-    for i in range(0, len(testcases[0])):
-        temp_file = SpooledTemporaryFile()
-        temp_file.write(testcases[0][i].encode("utf-8"))
-        temp_file.seek(0)
-        input_files.append(UploadFile(filename="input/input"+str(i).zfill(2), file=temp_file))
-    task_files.extend(input_files)
+    for i, input_content in enumerate(testcases[0]):
+        upload = await asyncio.to_thread(create_upload_file, f"input/input{str(i).zfill(2)}", input_content)
+        task_files.append(upload)
 
-    output_files = []
-    for i in range(0, len(testcases[1])):
-        temp_file = SpooledTemporaryFile()
-        temp_file.write(testcases[1][i].encode("utf-8"))
-        temp_file.seek(0)
-        output_files.append(UploadFile(filename="output/output"+str(i).zfill(2), file=temp_file))
-    task_files.extend(output_files)
+    for i, output_content in enumerate(testcases[1]):
+        upload = await asyncio.to_thread(create_upload_file, f"output/output{str(i).zfill(2)}", output_content)
+        task_files.append(upload)
 
     return task_files
+
+def create_upload_file(name: str, content: str) -> UploadFile:
+    temp_file = SpooledTemporaryFile()
+    temp_file.write(content.encode("utf-8"))
+    temp_file.seek(0)
+    return UploadFile(filename=name, file=temp_file)
 
 def testcases_generate(code: str) -> list[list[str], list[str]]:
     code = "import random\n" + code
@@ -77,10 +80,8 @@ def testcases_generate(code: str) -> list[list[str], list[str]]:
 
     generate_test_cases = local_vars["generate_test_cases"]
     test_input, test_output = generate_test_cases()
-
     return [test_input, test_output]
 
 def backtickFilter(text):
     filtered_lines = [line for line in text.splitlines() if "```" not in line]
-    result = "\n".join(filtered_lines)
-    return result
+    return "\n".join(filtered_lines)
