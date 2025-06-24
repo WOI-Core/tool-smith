@@ -1,0 +1,33 @@
+<!-- python -m http.server 8001 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Tool Smith</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="app.js"></script>
+</head>
+<body>
+    <h1>Tool Smith</h1>
+    <h3>Generate Competitive Programming Task</h3>
+    <form id="taskForm">
+        <label for="contentName">Content Name:</label><br />
+        <input type="text" id="contentName" name="contentName" required style="width:300px; padding:6px; margin-top:6px" /><br /><br />
+
+        <label for="casesSize">Number of Test Cases:</label><br />
+        <input type="number" id="casesSize" name="casesSize" required min="1" style="width:300px; padding:6px; margin-top:6px" /><br /><br />
+
+        <label for="detail">Description:</label><br />
+        <textarea id="detail" name="detail" rows="5" style="width:300px; padding:6px; margin-top:6px"></textarea><br /><br />
+
+        <button type="submit">Generate Tasks</button>
+    </form>
+    <p id="status" style="color:red;"></p>
+
+    <div id="fileExplorer" style="display:none; margin-top:20px;">
+        <label for="fileDropdown">View Generated Files:</label><br/>
+        <select id="fileDropdown" style="width:310px; padding:6px; margin-top:6px;"></select>
+        <pre id="fileContent" style="white-space:pre-wrap; background:#f0f0f0; padding:10px; border:1px solid #ccc; margin-top:10px;"></pre>
+    </div>
+</body>
+</html>
