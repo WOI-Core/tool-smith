@@ -51,18 +51,18 @@ async def generate_task(request: requestFromUser) -> list[UploadFile]:
     task_string.pop(0)
 
     task_files = []
-    file_name = ["README.md", f"{task_name}.cpp", "config.json"]
+    file_name = ["Problems/README.md", f"Solution/{task_name}.cpp", "config.json"]
 
     for file, name in zip(task_string, file_name):
         upload = await asyncio.to_thread(create_upload_file, name, file)
         task_files.append(upload)
     
     for i, input_content in enumerate(testcases[0]):
-        upload = await asyncio.to_thread(create_upload_file, f"input/input{str(i).zfill(2)}", input_content)
+        upload = await asyncio.to_thread(create_upload_file, f"TestCases/Inputs/input{str(i).zfill(2)}.txt", input_content)
         task_files.append(upload)
 
     for i, output_content in enumerate(testcases[1]):
-        upload = await asyncio.to_thread(create_upload_file, f"output/output{str(i).zfill(2)}", output_content)
+        upload = await asyncio.to_thread(create_upload_file, f"TestCases/Outputs/output{str(i).zfill(2)}.txt", output_content)
         task_files.append(upload)
 
     return task_files
