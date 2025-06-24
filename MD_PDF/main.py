@@ -1,16 +1,13 @@
 import markdown
-import pdfkit
-from fastapi import UploadFile
-from tempfile import SpooledTemporaryFile
 import os
+import pdfkit
 
-config = pdfkit.configuration(wkhtmltopdf=os.path.join(
-    os.path.dirname(os.path.abspath(__file__)),
-    "wkhtmltopdf/bin/wkhtmltopdf.exe"
-))
+# กำหนด path แบบถูกต้อง (แก้ให้เป็น raw string)
+config = pdfkit.configuration(wkhtmltopdf=os.path.join(os.path.dirname(os.path.abspath(__file__)), "wkhtmltopdf/bin/wkhtmltopdf.exe"))
 
-def MD_PDF(md: str, name: str) -> UploadFile:
-    html_body = markdown.markdown(md, extensions=['tables', 'fenced_code'])
+def MD_PDF(md: str, output_pdf: str = "output.pdf"):
+    # รองรับ markdown + inline HTML เช่น <table>
+    html_body = markdown.markdown(md, extensions=["extra"])
 
     html_template = f"""
     <!DOCTYPE html>
@@ -23,27 +20,25 @@ def MD_PDF(md: str, name: str) -> UploadFile:
                 font-size: 16px;
                 line-height: 1.6;
             }}
-            h1, h2, h3 {{ font-weight: bold; }}
+            h1, h2, h3 {{
+                font-weight: bold;
+            }}
             table {{
                 border-collapse: collapse;
                 width: 100%;
-                margin: 10px 0;
+                margin: 16px 0;
             }}
-            table, th, td {{
-                border: 1px solid black;
-                padding: 8px;
+            th, td {{
+                border: 1px solid #666;
+                padding: 8px 12px;
+                text-align: left;
+                vertical-align: top;  /* ✅ จัดให้ชิดบน */
             }}
-            code {{
-                background-color: #f4f4f4;
-                padding: 2px 4px;
-                border-radius: 4px;
-                font-family: monospace;
+            th {{
+                background-color: #f2f2f2;
             }}
-            pre {{
-                background-color: #f4f4f4;
-                padding: 10px;
-                border-radius: 4px;
-                overflow-x: auto;
+            tr:nth-child(even) {{
+                background-color: #f9f9f9;
             }}
         </style>
     </head>
@@ -53,9 +48,12 @@ def MD_PDF(md: str, name: str) -> UploadFile:
     </html>
     """
 
-    tmp_pdf = SpooledTemporaryFile(suffix=".pdf", mode="w+b")
-    pdfkit.from_string(html_template, tmp_pdf, configuration=config, options={
+    pdfkit.from_string(html_template, output_pdf, configuration=config, options={
         'encoding': 'utf-8'
     })
-    tmp_pdf.seek(0)
-    return UploadFile(filename=name + ".pdf", file=tmp_pdf, content_type="application/pdf")
+
+# ตัวอย่างเรียกใช้
+if __name__ == "__main__":
+    with open("example.md", "r", encoding="utf-8") as f:
+        md_text = f.read()
+    MD_PDF(md_text)
