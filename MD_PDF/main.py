@@ -1,12 +1,15 @@
-import markdown
+# pdf_converter.py
+
 import os
+import markdown
 import pdfkit
 
-# กำหนด path แบบถูกต้อง (แก้ให้เป็น raw string)
-config = pdfkit.configuration(wkhtmltopdf=os.path.join(os.path.dirname(os.path.abspath(__file__)), "wkhtmltopdf/bin/wkhtmltopdf.exe"))
+# ตั้งค่า path ให้ wkhtmltopdf
+pdf_config = pdfkit.configuration(
+    wkhtmltopdf=os.path.join(os.path.dirname(os.path.abspath(__file__)), "wkhtmltopdf/bin/wkhtmltopdf.exe")
+)
 
-def MD_PDF(md: str, output_pdf: str = "output.pdf"):
-    # รองรับ markdown + inline HTML เช่น <table>
+def MD_PDF(md: str, output_pdf: str):
     html_body = markdown.markdown(md, extensions=["extra"])
 
     html_template = f"""
@@ -32,7 +35,7 @@ def MD_PDF(md: str, output_pdf: str = "output.pdf"):
                 border: 1px solid #666;
                 padding: 8px 12px;
                 text-align: left;
-                vertical-align: top;  /* ✅ จัดให้ชิดบน */
+                vertical-align: top;
             }}
             th {{
                 background-color: #f2f2f2;
@@ -47,13 +50,4 @@ def MD_PDF(md: str, output_pdf: str = "output.pdf"):
     </body>
     </html>
     """
-
-    pdfkit.from_string(html_template, output_pdf, configuration=config, options={
-        'encoding': 'utf-8'
-    })
-
-# ตัวอย่างเรียกใช้
-if __name__ == "__main__":
-    with open("example.md", "r", encoding="utf-8") as f:
-        md_text = f.read()
-    MD_PDF(md_text)
+    pdfkit.from_string(html_template, output_pdf, configuration=pdf_config, options={'encoding': 'utf-8'})
