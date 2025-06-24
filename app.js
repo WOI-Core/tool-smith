@@ -6,12 +6,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const fileExplorer = document.getElementById('fileExplorer');
 
     const downloadBtn = document.createElement('button');
+    downloadBtn.type = "button";
     downloadBtn.textContent = 'Download ZIP';
     downloadBtn.style.marginTop = '10px';
     downloadBtn.style.display = 'none';
     form.appendChild(downloadBtn);
 
     const uploadBtn = document.createElement('button');
+    uploadBtn.type = "button";
     uploadBtn.textContent = 'Upload to grader';
     uploadBtn.style.marginTop = '10px';
     uploadBtn.style.display = 'none';
@@ -101,4 +103,34 @@ document.addEventListener('DOMContentLoaded', function () {
             URL.revokeObjectURL(downloadUrl);
         }
     });
+    
+    uploadBtn.addEventListener('click', async function () {
+        if (!latestBlob) return;
+
+        statusEl.style.color = 'black';
+        statusEl.textContent = 'Uploading to grader...';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', latestBlob, latestFileName);
+
+            const response = await fetch('http://127.0.0.1:8000/grader-upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+            statusEl.style.color = 'green';
+            statusEl.textContent = `Upload successful: ${result.status}`;
+        } catch (error) {
+            statusEl.style.color = 'red';
+            statusEl.textContent = 'Upload failed: ' + error.message;
+        }
+    });
 });
+
+

@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from pydantic import BaseModel
 from tempfile import SpooledTemporaryFile
 from dotenv import load_dotenv
+from MD_PDF import MD_PDF
 import asyncio
 import os
 
@@ -56,6 +57,9 @@ async def generate_task(request: requestFromUser) -> list[UploadFile]:
     for file, name in zip(task_string, file_name):
         upload = await asyncio.to_thread(create_upload_file, name, file)
         task_files.append(upload)
+    
+    pdf = MD_PDF(task_string[0], task_name)
+    task_files.append(pdf)
 
     for i, input_content in enumerate(testcases[0]):
         upload = await asyncio.to_thread(create_upload_file, f"input/input{str(i).zfill(2)}", input_content)
@@ -75,6 +79,7 @@ def create_upload_file(name: str, content: str) -> UploadFile:
 
 def testcases_generate(code: str) -> list[list[str], list[str]]:
     code = "import random\n" + code
+    print(code)
     local_vars = {}
     exec(code, {}, local_vars)
 
