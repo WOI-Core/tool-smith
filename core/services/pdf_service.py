@@ -60,8 +60,11 @@ class PdfService:
                 'no-outline': None
             }
             
+            pdf_config = pdfkit.configuration(
+                wkhtmltopdf=os.path.join(os.path.dirname(os.path.abspath(__file__)), "wkhtmltopdf/bin/wkhtmltopdf.exe")
+            )
             # This call will now work correctly
-            pdf_bytes = pdfkit.from_string(full_html, False, options=options)
+            pdf_bytes = pdfkit.from_string(full_html, False, options=options, configuration=pdf_config)
             return pdf_bytes
             
         except Exception as e:

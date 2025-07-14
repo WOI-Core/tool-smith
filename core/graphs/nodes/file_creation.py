@@ -6,11 +6,17 @@ import traceback
 import random
 
 def _clean_content(content: str) -> str:
-    cleaned_content = re.sub(r'```(?:[a-z]+\n)?(.*?)\n?```', r'\1', content, flags=re.DOTALL)
+    # Remove all ```lang\n...\n``` blocks including ```text
+    cleaned_content = re.sub(r'```[^\n]*\n(.*?)\n?```', r'\1', content, flags=re.DOTALL).strip()
+
+    # Remove TaskName or TaskName:
     cleaned_content = cleaned_content.replace("TaskName:", "").replace("TaskName", "").strip()
-    lines = cleaned_content.strip().split('\n')
-    if lines and (lines[0].strip().endswith('.py') or re.match(r'^[a-zA-Z0-9_.-]+\.[a-zA-Z]+$', lines[0].strip())):
+
+    # Remove first line if it looks like a filename (e.g. something.py or name.txt)
+    lines = cleaned_content.splitlines()
+    if lines and re.match(r'^[a-zA-Z0-9_.-]+\.[a-zA-Z]+$', lines[0].strip()):
         lines.pop(0)
+
     return '\n'.join(lines).strip()
 
 def _execute_generator(code: str, cases_size: int):
@@ -40,7 +46,9 @@ async def create_files_node(state: GraphState) -> dict:
         solution = _clean_content(parts[3])
         config = _clean_content(parts[4])
         
-        task_name = task_name_raw # ชื่อที่สะอาดแล้ว
+        task_name = task_name_raw.split('\n')[1] # ชื่อที่สะอาดแล้ว
+        print("task_name_raw = ", task_name_raw)
+        print("task_name = ", task_name, " --end of task name\n")
 
         inputs, outputs = _execute_generator(gen_py, state["request"].cases_size)
 

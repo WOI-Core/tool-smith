@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Generate Preview JSON Body</title>
+</head>
+<body>
+  <h1>Generate Preview (JSON Body)</h1>
+  
+  <form id="taskForm">
+    <label>
+      Content Name:<br />
+      <input type="text" id="content_name" required placeholder="BFS Algorithm" />
+    </label><br/><br/>
+    
+    <label>
+      Cases Size:<br />
+      <input type="number" id="cases_size" min="1" step="1" required placeholder="10" />
+    </label><br/><br/>
+    
+    <label>
+      Detail (optional):<br />
+      <textarea id="detail" rows="3" placeholder="The graph is always connected."></textarea>
+    </label><br/><br/>
+    
+    <button type="submit">Generate Preview</button>
+  </form>
+  
+  <script>
+    document.getElementById("taskForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const content_name = document.getElementById("content_name").value.trim();
+      const cases_size_input = document.getElementById("cases_size").value.trim();
+      const detail = document.getElementById("detail").value.trim();
+
+      const cases_size = parseInt(cases_size_input, 10);
+
+      if (!content_name) {
+        alert("Content Name is required");
+        return;
+      }
+      if (isNaN(cases_size) || cases_size <= 0) {
+        alert("Cases Size must be a positive integer");
+        return;
+      }
+
+      const jsonData = {
+        content_name,
+        cases_size
+      };
+      if (detail) {
+        jsonData.detail = detail;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/generate-preview", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(jsonData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert("Error: " + (errorData.detail || response.statusText));
+          return;
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = "preview_tasks.zip";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+
+      } catch (error) {
+        alert("Request failed: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
